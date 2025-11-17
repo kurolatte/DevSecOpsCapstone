@@ -34,7 +34,6 @@ pipeline {
         }
 
 
-
         stage('DAST - OWASP ZAP') {
             steps {
                 echo 'DAST stage - this is where ZAP scan will go later.'
