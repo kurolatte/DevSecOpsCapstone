@@ -21,11 +21,18 @@ pipeline {
             }
         }
 
-        stage('SCA - Dependency-Check') {
+                stage('SCA - Dependency-Check') {
             steps {
-                echo 'SCA stage - this is where Dependency-Check scan will go later.'
+                dependencyCheck additionalArguments: '--scan . --format XML --out reports',
+                                odcInstallation: 'Default'
+            }
+            post {
+                always {
+                    dependencyCheckPublisher pattern: 'reports/dependency-check-report.xml'
+                }
             }
         }
+
 
         stage('DAST - OWASP ZAP') {
             steps {
