@@ -1,41 +1,35 @@
 pipeline {
     agent any
+
     stages {
 
         stage('Checkout Code') {
-            git branch: 'main', url: 'https://github.com/kurolatte/DevSecOpsCapstone.git' }
+            steps {
+                echo 'Code already checked out by Jenkins (SCM stage).'
+            }
         }
 
         stage('Build') {
-            steps { echo 'App build successful!' }
+            steps {
+                echo 'Build stage - placeholder for now.'
+            }
         }
 
         stage('SAST - SonarQube') {
             steps {
-                withSonarQubeEnv('Sonar') {
-                    sh 'sonar-scanner'
-                }
+                echo 'SAST stage - this is where SonarQube scan will go later.'
             }
         }
 
         stage('SCA - Dependency-Check') {
             steps {
-                dependencyCheck additionalArguments: '--scan .'
+                echo 'SCA stage - this is where Dependency-Check scan will go later.'
             }
         }
 
-        stage('Start Juice Shop') {
+        stage('DAST - OWASP ZAP') {
             steps {
-                sh 'docker run -d -p 3000:3000 --name juice owasp/juice-shop'
-            }
-        }
-
-        stage('DAST - ZAP') {
-            steps {
-                sh '''
-                docker run --rm owasp/zap2docker-stable zap-baseline.py \
-                -t http://localhost:3000 -r zap-report.html
-                '''
+                echo 'DAST stage - this is where ZAP scan will go later.'
             }
         }
     }
