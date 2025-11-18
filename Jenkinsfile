@@ -21,11 +21,21 @@ pipeline {
             }
         }
 
-                stage('SCA - Dependency-Check') {
+                stage('SCA - Retire.js') {
     steps {
-        echo 'SCA stage: OWASP Dependency-Check is used to scan project dependencies for known vulnerabilities. (In this environment, we run it manually via CLI and use the report in our analysis.)'
+        sh '''
+        echo "Running Retire.js SCA scan..."
+        retire --path . --outputformat json --outputpath retire-report.json || true
+        '''
+    }
+    post {
+        always {
+            echo "Archiving Retire.js report..."
+            archiveArtifacts artifacts: 'retire-report.json', onlyIfSuccessful: false
+        }
     }
 }
+
 
         stage('DAST - OWASP ZAP') {
             steps {
