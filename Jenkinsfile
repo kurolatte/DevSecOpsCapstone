@@ -26,9 +26,7 @@ pipeline {
                 echo 'Running OWASP Dependency-Check using Jenkins plugin...'
                 dependencyCheck(
                     odcInstallation: 'DC',
-                    scanpath: 'juice-shop-master',
-                    out: 'odc-reports',
-                    additionalArguments: '--format HTML,XML'
+                    additionalArguments: '--scan . --format HTML,XML'
                 )
             }
         }
@@ -39,6 +37,7 @@ pipeline {
                 sh '''
                     retire --path . --outputformat json --outputpath retire-report.json || true
                 '''
+
                 echo 'Archiving Retire.js report...'
                 archiveArtifacts artifacts: 'retire-report.json', fingerprint: true, onlyIfSuccessful: false
             }
@@ -56,8 +55,8 @@ pipeline {
     post {
         always {
             echo 'Publishing Dependency-Check results and archiving reports...'
-            dependencyCheckPublisher pattern: 'odc-reports/dependency-check-report.xml'
-            archiveArtifacts artifacts: 'odc-reports/*', fingerprint: true, onlyIfSuccessful: false
+            dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+            archiveArtifacts artifacts: 'dependency-check-report.*', fingerprint: true, onlyIfSuccessful: false
         }
     }
 }
