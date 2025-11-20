@@ -21,14 +21,16 @@ pipeline {
         }
 
         stage('SCA - OWASP Dependency-Check') {
-            steps {
-                echo 'Running OWASP Dependency-Check using Jenkins plugin...'
+    steps {
+        echo "Running OWASP Dependency-Check using Jenkins plugin..."
 
-                sh 'mkdir -p odc-reports'
+        dependencyCheck additionalArguments: '--format HTML', 
+                        odcInstallation: 'DC', 
+                        out: 'odc-reports', 
+                        scanpath: 'juice-shop-master'
+    }
+}
 
-                dependencyCheck additionalArguments: '--scan . --format XML --out odc-reports', odcInstallation: 'DC'
-            }
-        }
 
         stage('DAST - OWASP ZAP') {
             steps {
