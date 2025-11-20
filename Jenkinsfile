@@ -25,11 +25,11 @@ pipeline {
             steps {
                 echo 'Running OWASP Dependency-Check using Jenkins plugin...'
                 dependencyCheck(
-                    odcInstallation: 'DC',
-                    additionalArguments: '--scan . --format HTML,XML'
-                )
-            }
+                odcInstallation: 'DC',
+                additionalArguments: '--scan .'
+             )
         }
+    }
 
         stage('SCA - Retire.js (JavaScript dependencies)') {
             steps {
@@ -55,8 +55,9 @@ pipeline {
     post {
         always {
             echo 'Publishing Dependency-Check results and archiving reports...'
-            dependencyCheckPublisher pattern: 'dependency-check-report.xml'
+            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
             archiveArtifacts artifacts: 'dependency-check-report.*', fingerprint: true, onlyIfSuccessful: false
+
         }
     }
 }
