@@ -5,8 +5,6 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                // Jenkins already does Declarative: Checkout SCM before this,
-                // but we keep this here for clarity/future freestyle jobs.
                 echo 'Code already checked out by Jenkins (SCM stage).'
             }
         }
@@ -14,42 +12,33 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Build stage - placeholder for now.'
-                // e.g. npm install / mvn package / etc. if needed
             }
         }
 
         stage('SAST - SonarQube') {
             steps {
                 echo 'SAST stage - SonarQube analysis is run externally via sonar-scanner CLI.'
-                // For the capstone you already ran sonar-scanner from your PC.
-                // If you later want to run it here, you can add a sh "sonar-scanner ..." command.
-            }
         }
 
         stage('SCA - OWASP Dependency-Check') {
-            steps {
-                echo 'Running OWASP Dependency-Check using Docker...'
-                sh '''
-                    mkdir -p odc-reports
-                    docker run --rm \
-                      -v "$PWD:/src" \
-                      -v "$HOME/depcheck-data:/usr/share/dependency-check/data" \
-                      -v "$PWD/odc-reports:/report" \
-                      owasp/dependency-check:latest \
-                      --scan /src/juice-shop-master \
-                      --format "HTML,XML" \
-                      --out /report \
-                      --project "DevSecOpsCapstone"
-                '''
-                echo 'Archiving OWASP Dependency-Check reports...'
-                archiveArtifacts artifacts: 'odc-reports/*', fingerprint: true, onlyIfSuccessful: false
-            }
+    steps {
+        echo 'Running OWASP Dependency-Check via Jenkins plugin...'
+
+        sh 'mkdir -p odc-reports'
+
+        dependencyCheck additionalArguments: '--scan . --format XML --out odc-reports', odcInstallation: 'DC'
+    }
+    post {
+        always {
+            echo 'Publishing Dependency-Check results...'
+            dependencyCheckPublisher pattern: 'odc-reports/dependency-check-report.xml'
+            archiveArtifacts artifacts: 'odc-reports/*', fingerprint: true, onlyIfSuccessful: false
         }
+
 
         stage('SCA - Retire.js (initial testing)') {
             steps {
                 echo 'Running Retire.js SCA scan (JavaScript dependencies)...'
-                // Assumes retire is installed inside the Jenkins container: npm install -g retire
                 sh '''
                     retire --path . --outputformat json --outputpath retire-report.json || true
                 '''
