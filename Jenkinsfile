@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout Code') {
             steps {
                 echo 'Code already checked out by Jenkins (SCM stage).'
@@ -21,20 +22,33 @@ pipeline {
         }
 
         stage('SCA - OWASP Dependency-Check') {
-    steps {
-        echo "Running OWASP Dependency-Check using Jenkins plugin..."
+            steps {
+                echo 'Running OWASP Dependency-Check using Jenkins plugin...'
+                dependencyCheck(
+                    odcInstallation: 'DC',
+                    scanpath: 'juice-shop-master',
+                    out: 'odc-reports',
+                    additionalArguments: '--format HTML,XML'
+                )
+            }
+        }
 
-        dependencyCheck additionalArguments: '--format HTML', 
-                        odcInstallation: 'DC', 
-                        out: 'odc-reports', 
-                        scanpath: 'juice-shop-master'
-    }
-}
-
+        stage('SCA - Retire.js (JavaScript dependencies)') {
+            steps {
+                echo 'Running Retire.js SCA scan for JavaScript dependencies...'
+                sh '''
+                    retire --path . --outputformat json --outputpath retire-report.json || true
+                '''
+                echo 'Archiving Retire.js report...'
+                archiveArtifacts artifacts: 'retire-report.json', fingerprint: true, onlyIfSuccessful: false
+            }
+        }
 
         stage('DAST - OWASP ZAP') {
             steps {
-                echo 'DAST - OWASP ZAP baseline scan is executed via Docker outside this Jenkinsfile.'
+                echo 'DAST - OWASP ZAP baseline scan is executed via Docker on the host machine.'
+                echo 'For this project, ZAP is run with:'
+                echo '  docker run -v "<project>:/zap/wrk" -t zaproxy/zap-stable zap-baseline.py -t http://host.docker.internal:3000 -r zap-report.html'
             }
         }
     }
