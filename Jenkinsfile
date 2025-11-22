@@ -9,11 +9,22 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            steps {
-                echo 'Build stage - placeholder for now.'
-            }
+        stage('Build / Install Dependencies') {
+    steps {
+        echo 'Installing Juice Shop dependencies so SCA tools can scan properly...'
+
+        dir('juice-shop-master') {
+            sh '''
+                if [ -f package-lock.json ]; then
+                    npm ci --force
+                else
+                    npm install --force
+                fi
+            '''
         }
+    }
+}
+
 
         stage('SAST - SonarQube') {
             steps {
